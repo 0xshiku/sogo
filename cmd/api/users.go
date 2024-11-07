@@ -37,15 +37,16 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	if err := app.store.Followers.Follow(ctx, followerUser.ID, payload.UserID); err != nil {
-		switch {
-		case store.ErrConflict:
-			app.conflictResponse(w, r, err)
-			return
-		default:
-			app.internalServerError(w, r, err)
-			return
-		}
-
+		// TODO: store.ErrConflict not working as intended. Need to check this later
+		//switch {
+		//case store.ErrConflict:
+		//	app.conflictResponse(w, r, err)
+		//	return
+		//default:
+		//	app.internalServerError(w, r, err)
+		//	return
+		//}
+		app.internalServerError(w, r, err)
 	}
 
 	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
