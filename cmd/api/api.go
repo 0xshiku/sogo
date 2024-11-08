@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 	"net/http"
 	"sogo/docs"
 	"sogo/internal/store"
 	"time"
-
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type application struct {
@@ -51,11 +50,11 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Route("/v1", func(r chi.Router) {
-		// Private Routes - Needs authentication
-		r.Get("/health", app.healthCheckHandler)
-
 		docsURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
+
+		// Private Routes - Needs authentication
+		r.Get("/health", app.healthCheckHandler)
 
 		r.Route("/posts", func(r chi.Router) {
 			r.Post("/", app.createPostsHandler)
@@ -67,7 +66,9 @@ func (app *application) mount() http.Handler {
 				r.Patch("/", app.updatePostHandler)
 			})
 		})
+
 		r.Route("/users", func(r chi.Router) {
+			r.Put("/activate/{token}", app.activateUserHandler)
 			r.Route("/{userID}", func(r chi.Router) {
 				r.Use(app.userContextMiddleware)
 
@@ -79,11 +80,11 @@ func (app *application) mount() http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Get("/feed", app.getUserFeedHandler)
 			})
+		})
 
-			// Public Routes - Does not need authentication
-			r.Route("/authentication", func(r chi.Router) {
-				r.Post("/user", app.registerUserHandler)
-			})
+		// Public Routes - Does not need authentication
+		r.Route("/authentication", func(r chi.Router) {
+			r.Post("/user", app.registerUserHandler)
 		})
 	})
 
