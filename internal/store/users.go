@@ -86,20 +86,6 @@ func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token strin
 	})
 }
 
-func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, userID int64) error {
-	query := `INSERT INTO user_invitations (token, user_id, expiry) VALUES ($1, $2, $3)`
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
-	defer cancel()
-
-	_, err := tx.ExecContext(ctx, query, token, userID, time.Now().Add(exp))
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (s *UserStore) Activate(ctx context.Context, token string) error {
 	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
 		// 1. find the user that this token belongs to
@@ -116,6 +102,20 @@ func (s *UserStore) Activate(ctx context.Context, token string) error {
 
 		// 3. clean the invitations data state
 		if err := s.deleteUserInvitations(ctx, tx, user.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UserStore) Delete(ctx context.Context, userID int64) error {
+	return WithTx(s.db, ctx, func(tx *sql.Tx) error {
+		if err := s.delete(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		if err := s.deleteUserInvitations(ctx, tx, userID); err != nil {
 			return err
 		}
 
@@ -173,6 +173,20 @@ func (s *UserStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token
 	return user, nil
 }
 
+func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, exp time.Duration, userID int64) error {
+	query := `INSERT INTO user_invitations (token, user_id, expiry) VALUES ($1, $2, $3)`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, token, userID, time.Now().Add(exp))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *UserStore) update(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `UPDATE users SET username = $1, email = $2, is_active = $3 WHERE  id = $4`
 
@@ -180,6 +194,20 @@ func (s *UserStore) update(ctx context.Context, tx *sql.Tx, user *User) error {
 	defer cancel()
 
 	_, err := tx.ExecContext(ctx, query, user.Username, user.Email, user.IsActive, user.ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserStore) delete(ctx context.Context, tx *sql.Tx, id int64) error {
+	query := `DELETE FROM users WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
