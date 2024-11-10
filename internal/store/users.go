@@ -166,6 +166,10 @@ func (p *password) Set(text string) error {
 	return nil
 }
 
+func (p *password) Compare(text string) error {
+	return bcrypt.CompareHashAndPassword(p.hash, []byte(text))
+}
+
 func (s *UserStore) getUserFromInvitation(ctx context.Context, tx *sql.Tx, token string) (*User, error) {
 	query := `
 		SELECT u.id, u.username, u.email, u.created_at, u.is_active 
