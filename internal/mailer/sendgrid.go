@@ -24,8 +24,8 @@ func NewSendgrid(apiKey, fromEmail string) *SendGridMailer {
 	}
 }
 
-func (m *SendGridMailer) Send(templateFile, username, email string, data any, isSandbox bool) (int, error) {
-	from := mail.NewEmail(FromName, m.fromEmail)
+func (s *SendGridMailer) Send(templateFile, username, email string, data any, isSandbox bool) (int, error) {
+	from := mail.NewEmail(FromName, s.fromEmail)
 	to := mail.NewEmail(username, email)
 
 	// Template parsing and building
@@ -51,7 +51,7 @@ func (m *SendGridMailer) Send(templateFile, username, email string, data any, is
 
 	var retryError error
 	for i := 0; i < MaxRetries; i++ {
-		response, retryErr := m.client.Send(message)
+		response, retryErr := s.client.Send(message)
 		if retryErr != nil {
 			// Exponential Backoff
 			time.Sleep(time.Second * time.Duration(i+1))
