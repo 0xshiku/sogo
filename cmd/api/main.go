@@ -4,7 +4,6 @@ import (
 	"go.uber.org/zap"
 	"sogo/internal/db"
 	"sogo/internal/env"
-	"sogo/internal/mailer"
 	"sogo/internal/store"
 	"time"
 )
@@ -47,6 +46,12 @@ func main() {
 				apiKey: env.GetString("SENDGRID_API_KEY", ""),
 			},
 		},
+		auth: authConfig{
+			basic: basicConfig{
+				user: env.GetString("AUTH_BASIC_USER", "admin"),
+				pass: env.GetString("AUTH_BASIC_PASS", "admin"),
+			},
+		},
 	}
 
 	// Logger
@@ -64,13 +69,13 @@ func main() {
 
 	store := store.NewStorage(db)
 
-	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+	// mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
 
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
-		mailer: mailer,
+		//mailer: mailer,
 	}
 
 	mux := app.mount()
