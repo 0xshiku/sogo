@@ -87,7 +87,7 @@ func (app *application) createPostsHandler(w http.ResponseWriter, r *http.Reques
 //	@Security		ApiKeyAuth
 //	@Router			/posts/{id} [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCtx(r)
+	post := getPostFromContext(r)
 	comments, err := app.store.Comments.GetByPostID(r.Context(), post.ID)
 	if err != nil {
 		app.internalServerError(w, r, err)
@@ -116,7 +116,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 //	@Security		ApiKeyAuth
 //	@Router			/posts/{id} [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCtx(r)
+	post := getPostFromContext(r)
 	if err := app.store.Posts.Delete(r.Context(), post.ID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
@@ -147,7 +147,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 //	@Security		ApiKeyAuth
 //	@Router			/posts/{id} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
-	post := getPostFromCtx(r)
+	post := getPostFromContext(r)
 
 	var payload UpdatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -204,7 +204,7 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func getPostFromCtx(r *http.Request) *store.Post {
+func getPostFromContext(r *http.Request) *store.Post {
 	post, _ := r.Context().Value(postCtx).(*store.Post)
 	return post
 }
