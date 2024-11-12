@@ -82,19 +82,22 @@ func main() {
 	defer db.Close()
 	logger.Info("database connection pool established")
 
+	// Cache
 	var rdb *redis.Client
 	if cfg.cache.enabled {
 		rdb = cache.NewRedisClient(cfg.cache.addr, cfg.cache.pw, cfg.cache.db)
 		logger.Info("redis cache connection pool established")
 	}
 
+	// Mailer
+	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
+	// Authenticator
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
+
 	store := store.NewStorage(db)
 
 	cache := cache.NewRedisStorage(rdb)
-
-	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
-
-	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
 
 	app := &application{
 		config:        cfg,
