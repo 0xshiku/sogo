@@ -49,6 +49,7 @@ func (s *UserStore) GetByID(ctx context.Context, userID int64) (*User, error) {
 		&user.CreatedAt,
 		&user.Role.ID,
 		&user.Role.Name,
+		&user.Role.Level,
 		&user.Role.Description,
 	)
 	if err != nil {
