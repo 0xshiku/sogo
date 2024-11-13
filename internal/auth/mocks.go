@@ -12,7 +12,7 @@ const secret = "test"
 var testClaims = jwt.MapClaims{
 	"aud": "test-aud",
 	"iss": "test-aud",
-	"sub": int64(111),
+	"sub": int64(1),
 	"exp": time.Now().Add(time.Hour).Unix(),
 }
 

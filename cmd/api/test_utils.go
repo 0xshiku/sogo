@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func newTestApplication(t *testing.T) *application {
+func newTestApplication(t *testing.T, cfg config) *application {
 	t.Helper()
 
 	logger := zap.NewNop().Sugar()
@@ -23,10 +23,11 @@ func newTestApplication(t *testing.T) *application {
 		store:         mockStore,
 		cacheStorage:  mockCacheStore,
 		authenticator: testAuth,
+		config:        cfg,
 	}
 }
 
-func execRequest(req *http.Request, mux http.Handler) *httptest.ResponseRecorder {
+func executeRequest(req *http.Request, mux http.Handler) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)
 
