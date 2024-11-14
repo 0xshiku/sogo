@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"sogo/docs"
 	"sogo/internal/auth"
+	"sogo/internal/env"
 	"sogo/internal/mailer"
 	"sogo/internal/ratelimiter"
 	"sogo/internal/store"
@@ -91,13 +92,10 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
-	r.Use(app.RateLimiterMiddleware)
 
 	// Basic CORS
 	r.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
+		AllowedOrigins:   []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://localhost:5174")},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -105,6 +103,7 @@ func (app *application) mount() http.Handler {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
+	r.Use(app.RateLimiterMiddleware)
 	/*
 		Set a timeout value on the request context (ctx), that will signal
 		through ctx.Done() that the request has timed out and further processing
