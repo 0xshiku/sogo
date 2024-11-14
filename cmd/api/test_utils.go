@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"sogo/internal/auth"
+	"sogo/internal/ratelimiter"
 	"sogo/internal/store"
 	"sogo/internal/store/cache"
 	"testing"
@@ -18,12 +19,19 @@ func newTestApplication(t *testing.T, cfg config) *application {
 	mockCacheStore := cache.NewMockStore()
 	testAuth := &auth.TestAuthenticator{}
 
+	// Rate limiter
+	rateLimiter := ratelimiter.NewFixedWindowLimiter(
+		cfg.rateLimiter.RequestsPerTimeFrame,
+		cfg.rateLimiter.TimeFrame,
+	)
+
 	return &application{
 		logger:        logger,
 		store:         mockStore,
 		cacheStorage:  mockCacheStore,
 		authenticator: testAuth,
 		config:        cfg,
+		rateLimiter:   rateLimiter,
 	}
 }
 

@@ -15,6 +15,7 @@ import (
 	"sogo/docs"
 	"sogo/internal/auth"
 	"sogo/internal/mailer"
+	"sogo/internal/ratelimiter"
 	"sogo/internal/store"
 	"sogo/internal/store/cache"
 	"syscall"
@@ -28,6 +29,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -39,6 +41,7 @@ type config struct {
 	frontendURL string
 	auth        authConfig
 	cache       cacheConfig
+	rateLimiter ratelimiter.Config
 }
 
 type cacheConfig struct {
@@ -84,6 +87,12 @@ type dbConfig struct {
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
 
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
+	r.Use(app.RateLimiterMiddleware)
+
 	// Basic CORS
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
@@ -96,8 +105,6 @@ func (app *application) mount() http.Handler {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
 	/*
 		Set a timeout value on the request context (ctx), that will signal
 		through ctx.Done() that the request has timed out and further processing
@@ -111,8 +118,8 @@ func (app *application) mount() http.Handler {
 		r.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docsURL)))
 
 		// Private Routes - Needs authentication
-		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
-
+		//r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
+		r.Get("/health", app.healthCheckHandler)
 		r.Route("/posts", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
 			r.Post("/", app.createPostsHandler)

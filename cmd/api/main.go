@@ -7,6 +7,7 @@ import (
 	"sogo/internal/db"
 	"sogo/internal/env"
 	"sogo/internal/mailer"
+	"sogo/internal/ratelimiter"
 	"sogo/internal/store"
 	"sogo/internal/store/cache"
 	"time"
@@ -67,6 +68,11 @@ func main() {
 				iss:    "goso",
 			},
 		},
+		rateLimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: env.GetInt("RATELIMITER_REQUESTS_COUNT", 20),
+			TimeFrame:            time.Second * 5,
+			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", true),
+		},
 	}
 
 	// Logger
@@ -95,6 +101,8 @@ func main() {
 	// Authenticator
 	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.token.secret, cfg.auth.token.iss, cfg.auth.token.iss)
 
+	// Rate Limiter
+	ratelimiter := ratelimiter.NewFixedWindowLimiter(cfg.rateLimiter.RequestsPerTimeFrame, cfg.rateLimiter.TimeFrame)
 	store := store.NewStorage(db)
 
 	cache := cache.NewRedisStorage(rdb)
@@ -106,6 +114,7 @@ func main() {
 		logger:        logger,
 		mailer:        mailer,
 		authenticator: jwtAuthenticator,
+		rateLimiter:   ratelimiter,
 	}
 
 	mux := app.mount()
