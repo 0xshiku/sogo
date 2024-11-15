@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/0xshiku/sogo/compare/v1.1.0...v1.2.0) (2024-11-15)
+
+
+### Features
+
+* adds dockerfile ([5f0850a](https://github.com/0xshiku/sogo/commit/5f0850a22310b417f35cc4bfa94b8aa9a0d7c1b7))
+
 ## [1.1.0](https://github.com/0xshiku/sogo/compare/v1.0.0...v1.1.0) (2024-11-15)
 
 
