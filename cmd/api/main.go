@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-const version = "0.0.1"
+const version = ""
 
 //	@title			GOSO API
 //	@description	API for GOSO,a social network for gophers
