@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/0xshiku/sogo/compare/v1.0.0...v1.1.0) (2024-11-15)
+
+
+### Features
+
+* adds script to update api version on main.go ([5767756](https://github.com/0xshiku/sogo/commit/57677561e461f99654645cae84b4e4ee690ea3c4))
+
 ## 1.0.0 (2024-11-15)
 
 
