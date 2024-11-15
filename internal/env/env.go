@@ -1,7 +1,6 @@
 package env
 
 import (
-	"log"
 	"os"
 	"strconv"
 )
@@ -22,7 +21,6 @@ func GetInt(key string, fallback int) int {
 
 func GetString(key string, fallback string) string {
 	val, ok := os.LookupEnv(key)
-	log.Printf(val)
 	if !ok {
 		return fallback
 	}
